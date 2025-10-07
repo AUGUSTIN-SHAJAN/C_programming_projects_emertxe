@@ -28,8 +28,6 @@ int main(int argc,char **argv)
                     encode(&app_info);
                     return 0;
                 default:
-                    // exit:
-                    //printf("%d\n", argc);
                         _print_help();
                         return 0;
             }
@@ -81,7 +79,7 @@ process_state encode(program_data *app_info)
         fread(header,8,1,fp_steg);
         *(unsigned long*)header=en_steg(*(unsigned long*)header,0x00);//towrite 0
         fwrite(header,8,1,fp_out);//write 0
-
+        printf("Magic String encoded\n");
      
         strcpy(&header[100],get_extension(app_info->argv[2],'.'));//getextension
         fread(header,strlen(&header[100])*8,1,fp_steg);
@@ -91,7 +89,7 @@ process_state encode(program_data *app_info)
         fread(header,8,1,fp_steg);
         *(unsigned long*)header=en_steg(*(unsigned long*)header,0x00);//towrite 0
         fwrite(header,8,1,fp_out);//write 0
-
+        printf("Extension encoded\n");
        
         for(int i=0;i<4;i++)
                 {
@@ -115,9 +113,9 @@ process_state encode(program_data *app_info)
                     fwrite(header,header[100],1,fp_out);
                 }//write remaining
         if(writes<=file_size)
-                printf("complete file write\n");
+                printf("%s successfully encoded in %s\n",app_info->argv[2],app_info->argv[1]);
         else 
-            printf("incomplete file write\n");
+            printf("%s not fully encoded, %s size insufficient\n",app_info->argv[2],app_info->argv[1]);
         
         fclose(fp_enc);
         fclose(fp_out);
@@ -144,8 +142,7 @@ process_state decode(program_data *app_info)
                 {
                     printf("%s is not a bmp file\n",app_info->argv[1]);
                     return FAILURE;
-                }
-                
+                }    
         int i=0;
         while(fread(&hold[20],1,8,fp_bmp))
                 {
@@ -165,6 +162,7 @@ process_state decode(program_data *app_info)
                         }
                     hold[i++]=hold[54];
                 }///check magicstring
+        printf("Magic String match\n");
         i=0;
         while(fread(&hold[20],1,8,fp_bmp))
                 {
@@ -176,6 +174,7 @@ process_state decode(program_data *app_info)
                         }
                     hold[i++]=hold[54];
                 }//get extension
+        printf(".%s file found\n",hold);
         char secretSize[4];
         for(int j=0;j<4;j++)
             {
@@ -195,6 +194,7 @@ process_state decode(program_data *app_info)
         strcat(&hold[20],".");
         strcat(&hold[20],hold);
         rename("decode",&hold[20]);
+        printf("%s decoded succesfully\n",app_info->argv[1]);
         return SUCCESS; 
     }
 void _print_help()
